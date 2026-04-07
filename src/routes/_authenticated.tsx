@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { AppSidebar } from '@/components/app-sidebar'
+import { AppSidebar, MobileNav } from '@/components/app-sidebar'
 import { getSession } from '@/lib/auth.functions'
 
 export const Route = createFileRoute('/_authenticated')({
@@ -23,9 +23,12 @@ function AuthenticatedLayout() {
     <TooltipProvider>
       <div className="flex h-screen overflow-hidden bg-background">
         <AppSidebar userName={user.name} userEmail={user.email} />
-        <main className="flex-1 overflow-auto">
-          <Outlet />
-        </main>
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <MobileNav userName={user.name} userEmail={user.email} />
+          <main className="flex-1 overflow-auto">
+            <Outlet />
+          </main>
+        </div>
       </div>
     </TooltipProvider>
   )

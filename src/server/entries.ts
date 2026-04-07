@@ -114,3 +114,30 @@ export const deleteEntry = createServerFn({ method: 'POST' })
       )
     return { success: true }
   })
+
+export const createManualEntry = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (data: {
+      projectId?: string | null
+      description?: string
+      startTime: string
+      endTime: string
+    }) => data,
+  )
+  .handler(async ({ data }) => {
+    const user = await requireUser()
+    const startTime = new Date(data.startTime)
+    const endTime = new Date(data.endTime)
+    if (endTime <= startTime) throw new Error('End time must be after start time')
+    const [entry] = await db
+      .insert(timeEntry)
+      .values({
+        userId: user.id,
+        projectId: data.projectId ?? null,
+        description: data.description ?? '',
+        startTime,
+        endTime,
+      })
+      .returning()
+    return entry
+  })

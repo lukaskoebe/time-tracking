@@ -1,5 +1,5 @@
 import { Link, useRouterState } from '@tanstack/react-router'
-import { LayoutDashboard, LogOut, FolderOpen, Clock } from 'lucide-react'
+import { LayoutDashboard, LogOut, FolderOpen, Clock, Menu } from 'lucide-react'
 import { signOut } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -9,8 +9,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
+import { FloralDecoration } from '@/components/floral-decoration'
+import { useState } from 'react'
 
-interface AppSidebarProps {
+interface SidebarProps {
   userName: string
   userEmail: string
 }
@@ -20,7 +28,11 @@ const navItems = [
   { to: '/projects', label: 'Projects', icon: FolderOpen },
 ]
 
-export function AppSidebar({ userName, userEmail }: AppSidebarProps) {
+function SidebarContent({
+  userName,
+  userEmail,
+  onNav,
+}: SidebarProps & { onNav?: () => void }) {
   const routerState = useRouterState()
   const currentPath = routerState.location.pathname
 
@@ -38,30 +50,42 @@ export function AppSidebar({ userName, userEmail }: AppSidebarProps) {
     .slice(0, 2)
 
   return (
-    <aside className="flex h-screen w-56 flex-col border-r border-border bg-sidebar">
-      {/* Logo */}
-      <div className="flex items-center gap-2.5 px-4 py-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-          <Clock className="h-4 w-4 text-primary-foreground" />
+    <div className="flex h-full flex-col">
+      {/* Logo + floral header */}
+      <div className="relative overflow-hidden px-4 pb-2 pt-5">
+        <div className="relative z-10 flex items-center gap-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary shadow-sm">
+            <Clock className="h-4 w-4 text-primary-foreground" />
+          </div>
+          <span className="font-heading text-base font-bold tracking-tight">
+            TrackTime
+          </span>
         </div>
-        <span className="font-heading text-base font-semibold tracking-tight">
-          TrackTime
-        </span>
+        {/* Floral decoration tucked in corner */}
+        <FloralDecoration
+          variant="small"
+          className="absolute -right-1 -top-1 h-12 w-32 opacity-70"
+        />
       </div>
 
+      {/* Divider */}
+      <div className="mx-4 mb-2 mt-1 h-px bg-sidebar-border" />
+
       {/* Nav */}
-      <nav className="flex-1 space-y-0.5 px-2 py-2">
+      <nav className="flex-1 space-y-0.5 px-2 py-1">
         {navItems.map(({ to, label, icon: Icon }) => {
-          const isActive = to === '/' ? currentPath === '/' : currentPath.startsWith(to)
+          const isActive =
+            to === '/' ? currentPath === '/' : currentPath.startsWith(to)
           return (
             <Link
               key={to}
               to={to}
+              onClick={onNav}
               className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-sidebar-foreground hover:bg-accent hover:text-accent-foreground',
+                  ? 'bg-primary/12 text-primary'
+                  : 'text-sidebar-foreground/80 hover:bg-accent hover:text-accent-foreground',
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -71,16 +95,18 @@ export function AppSidebar({ userName, userEmail }: AppSidebarProps) {
         })}
       </nav>
 
-      {/* User */}
+      {/* User footer */}
       <div className="border-t border-sidebar-border p-3">
         <div className="flex items-center gap-2.5">
           <Avatar className="h-8 w-8 shrink-0">
-            <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+            <AvatarFallback className="bg-primary/15 text-primary text-xs font-bold">
               {initials}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium leading-none">{userName}</p>
+            <p className="truncate text-sm font-semibold leading-none">
+              {userName}
+            </p>
             <p className="mt-0.5 truncate text-xs text-muted-foreground">
               {userEmail}
             </p>
@@ -100,6 +126,45 @@ export function AppSidebar({ userName, userEmail }: AppSidebarProps) {
           </Tooltip>
         </div>
       </div>
+    </div>
+  )
+}
+
+export function AppSidebar({ userName, userEmail }: SidebarProps) {
+  return (
+    <aside className="hidden w-56 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
+      <SidebarContent userName={userName} userEmail={userEmail} />
     </aside>
+  )
+}
+
+export function MobileNav({ userName, userEmail }: SidebarProps) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <header className="flex items-center gap-3 border-b border-border bg-sidebar px-4 py-3 md:hidden">
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+            <Menu className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-56 p-0 bg-sidebar">
+          <SheetTitle className="sr-only">Navigation</SheetTitle>
+          <SidebarContent
+            userName={userName}
+            userEmail={userEmail}
+            onNav={() => setOpen(false)}
+          />
+        </SheetContent>
+      </Sheet>
+
+      <div className="flex items-center gap-2">
+        <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary">
+          <Clock className="h-3.5 w-3.5 text-primary-foreground" />
+        </div>
+        <span className="font-heading text-sm font-bold">TrackTime</span>
+      </div>
+    </header>
   )
 }

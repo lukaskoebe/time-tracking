@@ -6,6 +6,7 @@ import { signUp } from '@/lib/auth-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { FloralDecoration } from '@/components/floral-decoration'
 import { toast } from 'sonner'
 
 export const Route = createFileRoute('/register')({
@@ -35,25 +36,35 @@ function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-background p-4">
-      <div className="w-full max-w-sm space-y-8">
+    <div className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-background p-4">
+      {/* Corner floral decorations */}
+      <FloralDecoration
+        variant="corner"
+        className="pointer-events-none absolute left-0 top-0 h-32 w-32 -translate-x-4 -translate-y-4 opacity-60"
+      />
+      <FloralDecoration
+        variant="corner"
+        className="pointer-events-none absolute bottom-0 right-0 h-32 w-32 translate-x-4 translate-y-4 rotate-180 opacity-60"
+      />
+
+      <div className="relative w-full max-w-sm space-y-7">
         {/* Logo */}
         <div className="flex flex-col items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary shadow-lg">
-            <Clock className="h-6 w-6 text-primary-foreground" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/25">
+            <Clock className="h-7 w-7 text-primary-foreground" />
           </div>
           <div className="text-center">
             <h1 className="font-heading text-2xl font-bold tracking-tight">
               TrackTime
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="mt-1 text-sm text-muted-foreground">
               Create your account
             </p>
           </div>
         </div>
 
-        {/* Form */}
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        {/* Form card */}
+        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
@@ -91,11 +102,7 @@ function RegisterPage() {
                 autoComplete="new-password"
               />
             </div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading}
-            >
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Creating account…' : 'Create account'}
             </Button>
           </form>
@@ -103,10 +110,7 @@ function RegisterPage() {
 
         <p className="text-center text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link
-            to="/login"
-            className="font-medium text-primary hover:underline"
-          >
+          <Link to="/login" className="font-semibold text-primary hover:underline">
             Sign in
           </Link>
         </p>
