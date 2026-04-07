@@ -1,0 +1,116 @@
+import { useState } from 'react'
+import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { Clock } from 'lucide-react'
+import { getSession } from '@/lib/auth.functions'
+import { signUp } from '@/lib/auth-client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
+
+export const Route = createFileRoute('/register')({
+  beforeLoad: async () => {
+    const session = await getSession()
+    if (session) throw redirect({ to: '/' })
+  },
+  component: RegisterPage,
+})
+
+function RegisterPage() {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    const result = await signUp.email({ name, email, password })
+    if (result.error) {
+      toast.error(result.error.message ?? 'Sign up failed')
+      setLoading(false)
+    } else {
+      window.location.href = '/'
+    }
+  }
+
+  return (
+    <div className="flex min-h-svh flex-col items-center justify-center bg-background p-4">
+      <div className="w-full max-w-sm space-y-8">
+        {/* Logo */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary shadow-lg">
+            <Clock className="h-6 w-6 text-primary-foreground" />
+          </div>
+          <div className="text-center">
+            <h1 className="font-heading text-2xl font-bold tracking-tight">
+              TrackTime
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Create your account
+            </p>
+          </div>
+        </div>
+
+        {/* Form */}
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                placeholder="Your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                autoComplete="name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                autoComplete="new-password"
+              />
+            </div>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? 'Creating account…' : 'Create account'}
+            </Button>
+          </form>
+        </div>
+
+        <p className="text-center text-sm text-muted-foreground">
+          Already have an account?{' '}
+          <Link
+            to="/login"
+            className="font-medium text-primary hover:underline"
+          >
+            Sign in
+          </Link>
+        </p>
+      </div>
+    </div>
+  )
+}
