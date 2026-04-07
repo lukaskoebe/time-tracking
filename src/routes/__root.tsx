@@ -2,6 +2,7 @@ import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { Toaster } from '@/components/ui/sonner'
+import { FlowerCanvas } from '@/components/flower-canvas'
 
 import appCss from '../styles.css?url'
 
@@ -24,7 +25,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        {children}
+        <FlowerCanvas />
+        <div className="relative z-[1]">{children}</div>
         <Toaster richColors position="bottom-right" />
         <TanStackDevtools
           config={{ position: 'bottom-right' }}

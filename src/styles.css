@@ -130,11 +130,11 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
-    @apply font-sans;
+    @apply bg-background font-sans;
+  }
+  body {
+    @apply text-foreground;
   }
   /* Warm scrollbar */
   ::-webkit-scrollbar {
