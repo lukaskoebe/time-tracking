@@ -1,8 +1,7 @@
 import type React from 'react'
 import { useState } from 'react'
-import { useRouter } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
-import { createProject } from '@/server/projects'
+import { offlineCreateProject } from '@/lib/offline-mutations'
 import { PROJECT_COLORS, cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,8 +16,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 
-export function CreateProjectDialog() {
-  const router = useRouter()
+interface CreateProjectDialogProps {
+  userId: string
+}
+
+export function CreateProjectDialog({ userId }: CreateProjectDialogProps) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [color, setColor] = useState(PROJECT_COLORS[0])
@@ -29,8 +31,7 @@ export function CreateProjectDialog() {
     if (!name.trim()) return
     setLoading(true)
     try {
-      await createProject({ data: { name: name.trim(), color } })
-      await router.invalidate()
+      await offlineCreateProject(userId, { name: name.trim(), color })
       setOpen(false)
       setName('')
       setColor(PROJECT_COLORS[0])
@@ -79,20 +80,14 @@ export function CreateProjectDialog() {
                   )}
                   style={{
                     background: c,
-                    ...(color === c
-                      ? { '--tw-ring-color': c } as React.CSSProperties
-                      : {}),
+                    ...(color === c ? ({ '--tw-ring-color': c } as React.CSSProperties) : {}),
                   }}
                 />
               ))}
             </div>
           </div>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading || !name.trim()}>

@@ -16,6 +16,18 @@ services:
       timeout: 5s
       retries: 10
 
+  migrate:
+    build:
+      context: .
+      target: migrate-runner
+    command: node migrate.mjs
+    restart: "no"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://time_tracking:time_tracking@db:5432/time_tracking}
+    depends_on:
+      db:
+        condition: service_healthy
+
   app:
     build: .
     restart: unless-stopped
@@ -29,6 +41,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   db_data:

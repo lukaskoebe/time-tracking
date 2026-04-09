@@ -16,6 +16,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { FloralDecoration } from '@/components/floral-decoration'
+import { SyncIndicator } from '@/components/sync-indicator'
 import { useState } from 'react'
 
 interface SidebarProps {
@@ -94,6 +95,11 @@ function SidebarContent({
           )
         })}
       </nav>
+
+      {/* Sync status */}
+      <div className="px-3 pb-1">
+        <SyncIndicator />
+      </div>
 
       {/* User footer */}
       <div className="border-t border-sidebar-border p-3">

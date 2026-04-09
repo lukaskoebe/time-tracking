@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useRouter } from '@tanstack/react-router'
 import { Play, Square } from 'lucide-react'
-import { startTimer, stopTimer } from '@/server/entries'
+import { offlineStartTimer, offlineStopTimer } from '@/lib/offline-mutations'
 import { formatDuration, getDurationSeconds } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,22 +24,20 @@ interface RunningEntry {
   description: string
   startTime: Date | string
   project: Project | null
+  syncStatus?: string
 }
 
 interface TimerCardProps {
+  userId: string
   projects: Project[]
   runningEntry: RunningEntry | null
 }
 
 function LiveTimer({ startTime }: { startTime: Date | string }) {
-  const [elapsed, setElapsed] = useState(() =>
-    getDurationSeconds(startTime),
-  )
+  const [elapsed, setElapsed] = useState(() => getDurationSeconds(startTime))
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setElapsed(getDurationSeconds(startTime))
-    }, 1000)
+    const interval = setInterval(() => setElapsed(getDurationSeconds(startTime)), 1000)
     return () => clearInterval(interval)
   }, [startTime])
 
@@ -51,8 +48,7 @@ function LiveTimer({ startTime }: { startTime: Date | string }) {
   )
 }
 
-export function TimerCard({ projects, runningEntry }: TimerCardProps) {
-  const router = useRouter()
+export function TimerCard({ userId, projects, runningEntry }: TimerCardProps) {
   const [description, setDescription] = useState('')
   const [projectId, setProjectId] = useState<string>('')
   const [loading, setLoading] = useState(false)
@@ -60,15 +56,12 @@ export function TimerCard({ projects, runningEntry }: TimerCardProps) {
   async function handleStart() {
     setLoading(true)
     try {
-      await startTimer({
-        data: {
-          description: description.trim(),
-          projectId: projectId || null,
-        },
+      await offlineStartTimer(userId, {
+        description: description.trim(),
+        projectId: projectId || null,
       })
       setDescription('')
       setProjectId('')
-      await router.invalidate()
     } catch {
       toast.error('Failed to start timer')
     } finally {
@@ -80,8 +73,7 @@ export function TimerCard({ projects, runningEntry }: TimerCardProps) {
     if (!runningEntry) return
     setLoading(true)
     try {
-      await stopTimer({ data: { entryId: runningEntry.id } })
-      await router.invalidate()
+      await offlineStopTimer(userId, runningEntry.id)
     } catch {
       toast.error('Failed to stop timer')
     } finally {
@@ -104,6 +96,9 @@ export function TimerCard({ projects, runningEntry }: TimerCardProps) {
               <span className="text-sm font-medium text-muted-foreground">
                 {runningEntry.project?.name ?? 'No project'}
               </span>
+              {runningEntry.syncStatus === 'pending' && (
+                <span className="text-[10px] text-amber-500 font-medium">offline</span>
+              )}
             </div>
             <p className="mt-1 truncate text-base font-medium">
               {runningEntry.description || (
@@ -150,10 +145,7 @@ export function TimerCard({ projects, runningEntry }: TimerCardProps) {
             {projects.map((p) => (
               <SelectItem key={p.id} value={p.id}>
                 <div className="flex items-center gap-2">
-                  <span
-                    className="inline-block h-2 w-2 rounded-full"
-                    style={{ background: p.color }}
-                  />
+                  <span className="inline-block h-2 w-2 rounded-full" style={{ background: p.color }} />
                   {p.name}
                 </div>
               </SelectItem>

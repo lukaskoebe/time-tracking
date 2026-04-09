@@ -11,8 +11,12 @@ import { toast } from 'sonner'
 
 export const Route = createFileRoute('/register')({
   beforeLoad: async () => {
-    const session = await getSession()
-    if (session) throw redirect({ to: '/' })
+    try {
+      const session = await getSession()
+      if (session) throw redirect({ to: '/' })
+    } catch (e) {
+      if (e instanceof Error && '_isRedirect' in e) throw e
+    }
   },
   component: RegisterPage,
 })

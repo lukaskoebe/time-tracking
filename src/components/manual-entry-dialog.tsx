@@ -1,8 +1,7 @@
 import type React from 'react'
 import { useState } from 'react'
-import { useRouter } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
-import { createManualEntry } from '@/server/entries'
+import { offlineCreateManualEntry } from '@/lib/offline-mutations'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -31,8 +30,9 @@ interface Project {
 }
 
 interface ManualEntryDialogProps {
+  userId: string
   projects: Project[]
-  defaultDate?: string // YYYY-MM-DD
+  defaultDate?: string
 }
 
 function toLocalISODate(date: Date) {
@@ -42,13 +42,8 @@ function toLocalISODate(date: Date) {
   return `${y}-${m}-${d}`
 }
 
-export function ManualEntryDialog({
-  projects,
-  defaultDate,
-}: ManualEntryDialogProps) {
-  const router = useRouter()
+export function ManualEntryDialog({ userId, projects, defaultDate }: ManualEntryDialogProps) {
   const today = defaultDate ?? toLocalISODate(new Date())
-
   const [open, setOpen] = useState(false)
   const [description, setDescription] = useState('')
   const [projectId, setProjectId] = useState<string>('')
@@ -73,15 +68,12 @@ export function ManualEntryDialog({
     }
     setLoading(true)
     try {
-      await createManualEntry({
-        data: {
-          description: description.trim(),
-          projectId: projectId || null,
-          startTime: new Date(startISO).toISOString(),
-          endTime: new Date(endISO).toISOString(),
-        },
+      await offlineCreateManualEntry(userId, {
+        description: description.trim(),
+        projectId: projectId || null,
+        startTime: new Date(startISO).toISOString(),
+        endTime: new Date(endISO).toISOString(),
       })
-      await router.invalidate()
       setOpen(false)
       setDescription('')
       setProjectId('')
@@ -130,10 +122,7 @@ export function ManualEntryDialog({
                 {projects.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     <div className="flex items-center gap-2">
-                      <span
-                        className="inline-block h-2 w-2 rounded-full"
-                        style={{ background: p.color }}
-                      />
+                      <span className="inline-block h-2 w-2 rounded-full" style={{ background: p.color }} />
                       {p.name}
                     </div>
                   </SelectItem>
@@ -179,24 +168,15 @@ export function ManualEntryDialog({
           {durationSecs !== null && (
             <p className="text-sm text-muted-foreground">
               Duration:{' '}
-              <span className="font-medium text-foreground">
-                {formatTotalTime(durationSecs)}
-              </span>
+              <span className="font-medium text-foreground">{formatTotalTime(durationSecs)}</span>
             </p>
           )}
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={loading || !date || !startTime || !endTime}
-            >
+            <Button type="submit" disabled={loading || !date || !startTime || !endTime}>
               {loading ? 'Saving…' : 'Save entry'}
             </Button>
           </DialogFooter>

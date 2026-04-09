@@ -1,11 +1,6 @@
-import { useRouter } from '@tanstack/react-router'
 import { Trash2 } from 'lucide-react'
-import { deleteEntry } from '@/server/entries'
-import {
-  formatDuration,
-  formatTotalTime,
-  getDurationSeconds,
-} from '@/lib/utils'
+import { offlineDeleteEntry } from '@/lib/offline-mutations'
+import { formatDuration, formatTotalTime, getDurationSeconds } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
@@ -23,6 +18,7 @@ interface TimeEntry {
   startTime: Date | string
   endTime: Date | string | null
   project: Project | null
+  syncStatus?: string
 }
 
 interface EntryListProps {
@@ -31,14 +27,12 @@ interface EntryListProps {
 }
 
 export function EntryList({ entries, totalSeconds }: EntryListProps) {
-  const router = useRouter()
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   async function handleDelete(entryId: string) {
     setDeletingId(entryId)
     try {
-      await deleteEntry({ data: { entryId } })
-      await router.invalidate()
+      await offlineDeleteEntry(entryId)
     } catch {
       toast.error('Failed to delete entry')
     } finally {
@@ -60,9 +54,7 @@ export function EntryList({ entries, totalSeconds }: EntryListProps) {
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
           Today
         </h2>
-        <span className="text-sm font-semibold tabular-nums">
-          {formatTotalTime(totalSeconds)}
-        </span>
+        <span className="text-sm font-semibold tabular-nums">{formatTotalTime(totalSeconds)}</span>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border">
@@ -71,6 +63,7 @@ export function EntryList({ entries, totalSeconds }: EntryListProps) {
             ? getDurationSeconds(entry.startTime, entry.endTime)
             : getDurationSeconds(entry.startTime)
           const isRunning = !entry.endTime
+          const isPending = entry.syncStatus && entry.syncStatus !== 'synced'
 
           return (
             <div
@@ -79,31 +72,29 @@ export function EntryList({ entries, totalSeconds }: EntryListProps) {
                 i !== entries.length - 1 ? 'border-b border-border' : ''
               }`}
             >
-              {/* Project dot */}
               <span
                 className="h-2.5 w-2.5 shrink-0 rounded-full"
-                style={{
-                  background: entry.project?.color ?? '#71717a',
-                }}
+                style={{ background: entry.project?.color ?? '#71717a' }}
               />
 
-              {/* Description + project */}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">
                   {entry.description || (
-                    <span className="text-muted-foreground italic">
-                      No description
-                    </span>
+                    <span className="text-muted-foreground italic">No description</span>
                   )}
                 </p>
-                {entry.project && (
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {entry.project.name}
-                  </p>
-                )}
+                <div className="flex items-center gap-1.5">
+                  {entry.project && (
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                      {entry.project.name}
+                    </p>
+                  )}
+                  {isPending && (
+                    <span className="mt-0.5 text-[10px] text-amber-500 font-medium">● offline</span>
+                  )}
+                </div>
               </div>
 
-              {/* Running indicator */}
               {isRunning && (
                 <Badge
                   variant="secondary"
@@ -113,12 +104,10 @@ export function EntryList({ entries, totalSeconds }: EntryListProps) {
                 </Badge>
               )}
 
-              {/* Duration */}
               <span className="shrink-0 font-mono text-sm tabular-nums text-foreground">
                 {formatDuration(duration)}
               </span>
 
-              {/* Time range */}
               <span className="hidden shrink-0 text-xs text-muted-foreground sm:block">
                 {new Date(entry.startTime).toLocaleTimeString([], {
                   hour: '2-digit',
@@ -131,7 +120,6 @@ export function EntryList({ entries, totalSeconds }: EntryListProps) {
                   })}`}
               </span>
 
-              {/* Delete */}
               {!isRunning && (
                 <Button
                   variant="ghost"

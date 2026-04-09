@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite dev --port 3000",
     "build": "vite build",
-    "preview": "vite preview",
+    "preview": "node .output/server/index.mjs",
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx}\"",
@@ -28,6 +28,8 @@
     "better-auth": "^1.6.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dexie": "^4.4.2",
+    "dexie-react-hooks": "^4.4.0",
     "dotenv": "^17.4.1",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.7.0",
@@ -56,10 +58,13 @@
     "@vitejs/plugin-react": "^5.2.0",
     "drizzle-kit": "^0.31.10",
     "jsdom": "^27.4.0",
+    "playwright": "^1.59.1",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
+    "sharp": "^0.34.5",
     "typescript": "^5.9.3",
     "vite": "^8.0.7",
+    "vite-plugin-pwa": "^1.2.0",
     "vitest": "^3.2.4",
     "web-vitals": "^5.1.0"
   }

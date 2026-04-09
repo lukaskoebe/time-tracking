@@ -11,8 +11,13 @@ import { toast } from 'sonner'
 
 export const Route = createFileRoute('/login')({
   beforeLoad: async () => {
-    const session = await getSession()
-    if (session) throw redirect({ to: '/' })
+    try {
+      const session = await getSession()
+      if (session) throw redirect({ to: '/' })
+    } catch (e) {
+      // Re-throw redirects (user already logged in), swallow auth/network errors
+      if (e instanceof Error && '_isRedirect' in e) throw e
+    }
   },
   component: LoginPage,
 })
