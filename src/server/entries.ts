@@ -49,6 +49,21 @@ export const getWeekEntries = createServerFn({ method: 'GET' }).handler(async ()
   })
 })
 
+export const getEntriesForRange = createServerFn({ method: 'GET' })
+  .inputValidator((data: { start: string; end: string }) => data)
+  .handler(async ({ data }) => {
+    const user = await requireUser()
+    return db.query.timeEntry.findMany({
+      where: and(
+        eq(timeEntry.userId, user.id),
+        gte(timeEntry.startTime, new Date(data.start)),
+        lt(timeEntry.startTime, new Date(data.end)),
+      ),
+      with: { project: true },
+      orderBy: [desc(timeEntry.startTime)],
+    })
+  })
+
 export const getRunningEntry = createServerFn({ method: 'GET' }).handler(async () => {
   const user = await requireUser()
   return (

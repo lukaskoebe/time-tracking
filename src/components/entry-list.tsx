@@ -24,9 +24,10 @@ interface TimeEntry {
 interface EntryListProps {
   entries: TimeEntry[]
   totalSeconds: number
+  label?: string
 }
 
-export function EntryList({ entries, totalSeconds }: EntryListProps) {
+export function EntryList({ entries, totalSeconds, label = 'Today' }: EntryListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   async function handleDelete(entryId: string) {
@@ -43,7 +44,7 @@ export function EntryList({ entries, totalSeconds }: EntryListProps) {
   if (entries.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border py-16 text-center">
-        <p className="text-sm text-muted-foreground">No entries today. Start a timer above!</p>
+        <p className="text-sm text-muted-foreground">No entries. Start a timer above!</p>
       </div>
     )
   }
@@ -52,7 +53,7 @@ export function EntryList({ entries, totalSeconds }: EntryListProps) {
     <div className="space-y-2">
       <div className="flex items-center justify-between px-1">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-          Today
+          {label}
         </h2>
         <span className="text-sm font-semibold tabular-nums">{formatTotalTime(totalSeconds)}</span>
       </div>
